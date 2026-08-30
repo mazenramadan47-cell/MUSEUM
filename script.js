@@ -1,9 +1,624 @@
-const birthday=new Date("2026-08-31T00:00:00+03:00"), screens=["countdown","welcome","letter","memories","videoScreen","final"], $=id=>document.getElementById(id);let musicStarted=false,fw=null;
-function show(id){screens.forEach(x=>$(x).classList.remove("active"));$(id).classList.add("active");scrollTo({top:0,behavior:"smooth"});if(id==="welcome")typeWelcome();if(id==="final")startFireworks()}
-const pad=n=>String(n).padStart(2,"0");function update(){let d=birthday-new Date();if(d<=0){show("welcome");return}let s=Math.floor(d/1000);$("days").textContent=pad(Math.floor(s/86400));$("hours").textContent=pad(Math.floor(s/3600)%24);$("mins").textContent=pad(Math.floor(s/60)%60);$("secs").textContent=pad(s%60)}update();setInterval(update,1000);
-for(let i=0;i<170;i++){let s=document.createElement("i");s.className="star";s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";s.style.animationDelay=Math.random()*2.5+"s";$("stars").appendChild(s)}for(let i=0;i<5;i++){let s=document.createElement("i");s.className="shoot";s.style.left=(20+Math.random()*90)+"%";s.style.top=(5+Math.random()*50)+"%";s.style.animationDelay=(i*3+Math.random()*3)+"s";$("shootingStars").appendChild(s)}
-function startMusic(){if(musicStarted)return;let m=$("music");m.volume=.22;m.play().then(()=>{musicStarted=true;$("musicHint").textContent="♫ music on"}).catch(()=>{})}document.addEventListener("click",startMusic);
-function typeWelcome(){let el=$("welcomeText");if(el.dataset.done)return;let text="I made something just for you... take your time. ♥",i=0,t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(t);el.dataset.done=1}},38)}
-$("openBtn").onclick=()=>show("letter");$("envelope").onclick=()=>{$("envelope").classList.add("open");$("tapHint").style.opacity=0;setTimeout(()=>$("continueBtn").classList.remove("hidden"),1000)};$("continueBtn").onclick=()=>show("memories");$("videoBtn").onclick=()=>show("videoScreen");$("finishBtn").onclick=()=>{show("final");heartsBurst()};$("birthdayVideo").addEventListener("ended",()=>$("finishBtn").classList.add("ready"));
-function heartsBurst(){for(let i=0;i<24;i++){let h=document.createElement("div");h.className="heart";h.textContent=Math.random()>.22?"♥":"✦";h.style.left=Math.random()*100+"%";h.style.animationDelay=Math.random()*1.4+"s";h.style.fontSize=14+Math.random()*23+"px";$("hearts").appendChild(h);setTimeout(()=>h.remove(),6500)}}
-function startFireworks(){if(fw)return;let c=$("fireworks"),ctx=c.getContext("2d"),W,H,p=[];function resize(){W=c.width=innerWidth;H=c.height=innerHeight}addEventListener("resize",resize);resize();function burst(x,y){for(let i=0;i<65;i++){let a=Math.random()*Math.PI*2,s=1+Math.random()*4;p.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1})}}function loop(){ctx.clearRect(0,0,W,H);if(Math.random()<.035)burst(W*(.15+.7*Math.random()),H*(.15+.45*Math.random()));p.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.vy+=.025;q.life-=.012;ctx.globalAlpha=Math.max(0,q.life);ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(q.x,q.y,1.5,0,7);ctx.fill()});p=p.filter(q=>q.life>0);fw=requestAnimationFrame(loop)}loop()}
+document.addEventListener("DOMContentLoaded", () => {
+
+    console.log("RADODA WEBSITE LOADED");
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    const $ = (selector) =>
+        document.querySelector(selector);
+
+    const $$ = (selector) =>
+        document.querySelectorAll(selector);
+
+
+    /* =====================================================
+       SCENES
+    ===================================================== */
+
+    const scenes = $$(".scene");
+
+
+    function showScene(id) {
+
+        console.log("Opening scene:", id);
+
+        scenes.forEach(scene => {
+            scene.classList.remove("active");
+        });
+
+        const target = document.getElementById(id);
+
+        if (!target) {
+            console.error("Scene not found:", id);
+            return;
+        }
+
+        target.classList.add("active");
+
+        target.scrollTop = 0;
+    }
+
+
+    /* =====================================================
+       STARS
+    ===================================================== */
+
+    const stars = $("#stars");
+
+    if (stars) {
+
+        for (let i = 0; i < 70; i++) {
+
+            const star = document.createElement("span");
+
+            star.className = "star";
+
+            star.style.left =
+                Math.random() * 100 + "vw";
+
+            star.style.top =
+                Math.random() * 100 + "vh";
+
+            star.style.animationDelay =
+                Math.random() * 4 + "s";
+
+            star.style.animationDuration =
+                2 + Math.random() * 4 + "s";
+
+            stars.appendChild(star);
+        }
+    }
+
+
+    /* =====================================================
+       MUSIC
+    ===================================================== */
+
+    const music = $("#music");
+    const musicToggle = $("#musicToggle");
+
+    let musicStarted = false;
+
+
+    async function startMusic() {
+
+        if (!music) {
+            console.error("Music element not found!");
+            return;
+        }
+
+        try {
+
+            music.volume = 0.22;
+
+            await music.play();
+
+            musicStarted = true;
+
+            if (musicToggle) {
+                musicToggle.textContent = "♫";
+            }
+
+            console.log("Music started.");
+
+        } catch (error) {
+
+            console.log(
+                "Browser blocked music:",
+                error
+            );
+
+        }
+    }
+
+
+    if (musicToggle) {
+
+        musicToggle.addEventListener(
+            "click",
+            async (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!music) return;
+
+                if (music.paused) {
+
+                    await startMusic();
+
+                } else {
+
+                    music.pause();
+
+                    musicToggle.textContent = "♪";
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       ENTER MUSEUM
+    ===================================================== */
+
+    const enterMuseum = $("#enterMuseum");
+
+    if (enterMuseum) {
+
+        enterMuseum.addEventListener(
+            "click",
+            async (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log("ENTER clicked");
+
+                /* Start music from actual user click */
+                await startMusic();
+
+                showScene("gallery");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       GALLERY
+    ===================================================== */
+
+    const artworks =
+        $$(".artwork");
+
+    const viewer =
+        $("#artViewer");
+
+    const viewerImage =
+        $("#viewerImage");
+
+    const viewerNumber =
+        $("#viewerNumber");
+
+    const closeViewer =
+        $("#closeViewer");
+
+    const openedCount =
+        $("#openedCount");
+
+    const galleryHint =
+        $("#galleryHint");
+
+    const continueGallery =
+        $("#continueGallery");
+
+
+    const openedImages =
+        new Set();
+
+
+    artworks.forEach((artwork, index) => {
+
+        artwork.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log(
+                    "Artwork clicked:",
+                    index + 1
+                );
+
+
+                const image =
+                    artwork.querySelector("img");
+
+
+                if (!image) {
+
+                    console.error(
+                        "Image missing"
+                    );
+
+                    return;
+
+                }
+
+
+                if (!viewer || !viewerImage) {
+
+                    console.error(
+                        "Viewer missing"
+                    );
+
+                    return;
+
+                }
+
+
+                viewerImage.src =
+                    image.currentSrc ||
+                    image.src;
+
+
+                if (viewerNumber) {
+
+                    viewerNumber.textContent =
+                        String(index + 1)
+                            .padStart(2, "0");
+
+                }
+
+
+                viewer.classList.add("show");
+
+
+                openedImages.add(index);
+
+
+                if (openedCount) {
+
+                    openedCount.textContent =
+                        openedImages.size;
+
+                }
+
+
+                if (
+                    openedImages.size === 6
+                ) {
+
+                    if (galleryHint) {
+
+                        galleryHint.textContent =
+                            "The entire collection has been explored.";
+
+                    }
+
+
+                    if (continueGallery) {
+
+                        continueGallery.classList.remove(
+                            "hidden"
+                        );
+
+                    }
+
+                } else {
+
+                    if (galleryHint) {
+
+                        galleryHint.textContent =
+                            "Keep exploring the collection.";
+
+                    }
+
+                }
+
+            }
+        );
+
+    });
+
+
+    /* =====================================================
+       CLOSE VIEWER
+    ===================================================== */
+
+    if (closeViewer) {
+
+        closeViewer.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewer.classList.remove("show");
+
+            }
+        );
+
+    }
+
+
+    if (viewer) {
+
+        viewer.addEventListener(
+            "click",
+            (event) => {
+
+                if (
+                    event.target === viewer
+                ) {
+
+                    viewer.classList.remove(
+                        "show"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       CONTINUE FROM GALLERY
+    ===================================================== */
+
+    if (continueGallery) {
+
+        continueGallery.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log(
+                    "Continue gallery clicked"
+                );
+
+                showScene(
+                    "messageRoom"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       MESSAGE ROOM
+    ===================================================== */
+
+    const toCinema =
+        $("#toCinema");
+
+
+    if (toCinema) {
+
+        toCinema.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log(
+                    "Cinema clicked"
+                );
+
+                showScene("cinema");
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       VIDEO
+    ===================================================== */
+
+    const mainVideo =
+        $("#mainVideo");
+
+
+    if (mainVideo) {
+
+        mainVideo.addEventListener(
+            "loadedmetadata",
+            () => {
+
+                console.log(
+                    "Video loaded successfully."
+                );
+
+            }
+        );
+
+
+        mainVideo.addEventListener(
+            "error",
+            () => {
+
+                console.error(
+                    "VIDEO ERROR: birthday.mp4 could not be loaded."
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       FINISH
+    ===================================================== */
+
+    const finishButton =
+        $("#finishButton");
+
+
+    if (finishButton) {
+
+        finishButton.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                console.log(
+                    "Finish clicked"
+                );
+
+                showScene("finale");
+
+                createFinalParticles();
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       FINAL PARTICLES
+    ===================================================== */
+
+    function createFinalParticles() {
+
+        const container =
+            $("#finalParticles");
+
+
+        if (!container) return;
+
+
+        container.innerHTML = "";
+
+
+        const symbols = [
+            "✦",
+            "✧",
+            "⋆",
+            "♥"
+        ];
+
+
+        for (
+            let i = 0;
+            i < 35;
+            i++
+        ) {
+
+            const particle =
+                document.createElement("div");
+
+
+            particle.textContent =
+                symbols[
+                    Math.floor(
+                        Math.random() *
+                        symbols.length
+                    )
+                ];
+
+
+            particle.style.position =
+                "fixed";
+
+
+            particle.style.left =
+                Math.random() * 100 + "vw";
+
+
+            particle.style.top =
+                105 + Math.random() * 10 + "vh";
+
+
+            particle.style.fontSize =
+                10 + Math.random() * 18 + "px";
+
+
+            particle.style.color =
+                i % 4 === 3
+                    ? "rgba(255,120,159,.7)"
+                    : "rgba(216,180,124,.65)";
+
+
+            particle.style.pointerEvents =
+                "none";
+
+
+            particle.style.animation =
+                `rise ${
+                    5 + Math.random() * 5
+                }s linear forwards`;
+
+
+            container.appendChild(
+                particle
+            );
+
+
+            setTimeout(() => {
+
+                particle.remove();
+
+            }, 11000);
+
+        }
+
+    }
+
+
+    /* =====================================================
+       RESTART
+    ===================================================== */
+
+    const restart =
+        $("#restart");
+
+
+    if (restart) {
+
+        restart.addEventListener(
+            "click",
+            (event) => {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                location.reload();
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       KEYBOARD
+    ===================================================== */
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Escape" &&
+                viewer &&
+                viewer.classList.contains("show")
+            ) {
+
+                viewer.classList.remove(
+                    "show"
+                );
+
+            }
+
+        }
+    );
+
+
+    console.log(
+        "RADODA WEBSITE READY ✅"
+    );
+
+});
